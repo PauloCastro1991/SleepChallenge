@@ -5,13 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Data
 @Builder
-public class SleepLogDTO {
-    private Long id;
+public class SleepLogRequestDTO {
     private Long userId;
-    private LocalDateTime sleepStart;
-    private LocalDateTime sleepEnd;
+    private LocalTime sleepStart;
+    private LocalTime sleepEnd;
     private Mood mood;
 }
