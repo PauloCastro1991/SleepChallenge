@@ -1,5 +1,7 @@
 package com.noom.interview.fullstack.models;
 
+import com.noom.interview.fullstack.enums.Mood;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -8,6 +10,7 @@ import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "sleep_logs")
 public class SleepLog {
@@ -26,8 +29,9 @@ public class SleepLog {
     @Column(name = "sleep_end", nullable = false)
     private LocalDateTime sleepEnd;
 
-    @Column(length = 25)
-    private String mood;
+    @Column
+    @Enumerated(EnumType.STRING)
+    private Mood mood;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
