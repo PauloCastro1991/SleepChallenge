@@ -1,5 +1,6 @@
 package com.noom.interview.fullstack.controllers;
 
+import com.noom.interview.fullstack.dtos.SleepLogAveragesDTO;
 import com.noom.interview.fullstack.dtos.SleepLogDTO;
 import com.noom.interview.fullstack.dtos.SleepLogRequestDTO;
 import com.noom.interview.fullstack.services.SleepLogService;
@@ -28,5 +29,10 @@ public class SleepLogController {
     @GetMapping("/user/{userId}/last-night")
     public ResponseEntity<List<SleepLogDTO>> getLastNightSleepLogByUserId(@PathVariable Long userId) {
         return ResponseEntity.ok(sleepLogService.getLastNightSleepLogByUserId(userId));
+    }
+
+    @GetMapping("/users/{userId}/sleep/averages/last30days")
+    public ResponseEntity<SleepLogAveragesDTO> getLast30DaysAverages(@PathVariable Long userId) {
+        return ResponseEntity.ok(sleepLogService.getLast30DaysAveragesByUserId(userId));
     }
 }
