@@ -1,7 +1,9 @@
 package com.noom.interview.fullstack.services.impl;
 
+import com.noom.interview.fullstack.dtos.SleepLogAveragesDTO;
 import com.noom.interview.fullstack.dtos.SleepLogDTO;
 import com.noom.interview.fullstack.dtos.SleepLogRequestDTO;
+import com.noom.interview.fullstack.enums.Mood;
 import com.noom.interview.fullstack.exceptions.NoSleepLogFoundException;
 import com.noom.interview.fullstack.exceptions.UserNotFoundException;
 import com.noom.interview.fullstack.models.SleepLog;
@@ -9,15 +11,18 @@ import com.noom.interview.fullstack.models.User;
 import com.noom.interview.fullstack.repositories.SleepLogRepository;
 import com.noom.interview.fullstack.repositories.UserRepository;
 import com.noom.interview.fullstack.services.SleepLogService;
+import com.noom.interview.fullstack.utils.CalculationUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,6 +35,33 @@ public class SleepLogServiceImpl implements SleepLogService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Override
+    public SleepLogAveragesDTO getLast30DaysAveragesByUserId(Long userId) {
+        logger.info("Fetching last 30 days sleep log averages for userId={}", userId);
+
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = endDate.minusDays(30);
+
+        List<SleepLog> sleepLogs = sleepLogRepository.findByUserIdAndDateRange(userId, startDate, endDate);
+
+        return calculateAverages(sleepLogs, startDate, endDate, userId);
+    }
+
+    private SleepLogAveragesDTO calculateAverages(List<SleepLog> sleepLogs, LocalDateTime startDate, LocalDateTime endDate, Long userId) {
+        sleepLogs = sleepLogs.stream()
+                .filter(log -> log.getSleepStart().isBefore(log.getSleepEnd()))
+                .collect(Collectors.toList());
+
+        return SleepLogAveragesDTO.builder()
+                .startDate(startDate)
+                .endDate(endDate)
+                .averageTotalTimeInBed(CalculationUtil.calculateAverageSleepHours(sleepLogs))
+                .averageBedtime(CalculationUtil.calculateAverageTime(sleepLogs.stream().map(SleepLog::getSleepStart).collect(Collectors.toList()), CalculationUtil.TimeType.BEDTIME))
+                .averageWakeTime(CalculationUtil.calculateAverageTime(sleepLogs.stream().map(SleepLog::getSleepEnd).collect(Collectors.toList()), CalculationUtil.TimeType.WAKEUP))
+                .moodFrequencies(CalculationUtil.calculateMoodFrequency(sleepLogs))
+                .build();
+    }
 
     @Override
     public List<SleepLogDTO> getSleepLogsByUserId(Long userId) {

@@ -1,5 +1,6 @@
 package com.noom.interview.fullstack.services.impl;
 
+import com.noom.interview.fullstack.dtos.SleepLogAveragesDTO;
 import com.noom.interview.fullstack.dtos.SleepLogDTO;
 import com.noom.interview.fullstack.dtos.SleepLogRequestDTO;
 import com.noom.interview.fullstack.enums.Mood;
@@ -15,12 +16,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalTime;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -222,4 +222,48 @@ class SleepLogServiceImplTest {
         assertEquals(Mood.BAD, result.get(1).getMood());
         verify(sleepLogRepository).findLastNightSleepLogsByUserId(eq(userId), any(), any());
     }
+
+    @Test
+    public void testGetLast30DaysAveragesByUserId_WithSleepLogs() {
+        Long userId = 1L;
+        User user = new User();
+        user.setId(userId);
+
+        SleepLog log1 = new SleepLog(1L, user, createDateTime(2024, 10, 17, 0, 0), createDateTime(2024, 10, 17, 4, 0), Mood.GOOD, LocalDateTime.now());
+        SleepLog log2 = new SleepLog(2L, user, createDateTime(2024, 10, 12, 0, 0), createDateTime(2024, 10, 12, 3, 0), Mood.OK, LocalDateTime.now());
+        SleepLog log3 = new SleepLog(2L, user, createDateTime(2024, 10, 10, 0, 0), createDateTime(2024, 10, 10, 5, 0), Mood.BAD, LocalDateTime.now());
+
+        List<SleepLog> sleepLogs = Arrays.asList(log1, log2, log3);
+        when(sleepLogRepository.findByUserIdAndDateRange(any(), any(), any())).thenReturn(sleepLogs);
+
+        SleepLogAveragesDTO averagesDTO = sleepLogService.getLast30DaysAveragesByUserId(userId);
+
+        assertEquals("04:00", averagesDTO.getAverageTotalTimeInBed());
+        assertEquals(LocalTime.of(0,0), averagesDTO.getAverageBedtime());
+        assertEquals(LocalTime.of(4,0), averagesDTO.getAverageWakeTime());
+        assertEquals(1, averagesDTO.getMoodFrequencies().get(Mood.GOOD));
+        assertEquals(1, averagesDTO.getMoodFrequencies().get(Mood.OK));
+        assertEquals(1, averagesDTO.getMoodFrequencies().get(Mood.BAD));
+    }
+
+    private static LocalDateTime createDateTime(int year, int month, int day, int hour, int minute) {
+        return LocalDateTime.of(year, month, day, hour, minute);
+    }
+
+    @Test
+    public void testGetLast30DaysAveragesByUserId_NoSleepLogs() {
+        Long userId = 1L;
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = endDate.minusDays(30);
+
+        when(sleepLogRepository.findByUserIdAndDateRange(userId, startDate, endDate)).thenReturn(Arrays.asList());
+
+        SleepLogAveragesDTO averagesDTO = sleepLogService.getLast30DaysAveragesByUserId(userId);
+
+        assertEquals("00:00", averagesDTO.getAverageTotalTimeInBed());
+        assertNull(averagesDTO.getAverageBedtime());
+        assertNull(averagesDTO.getAverageWakeTime());
+        assertEquals(0, averagesDTO.getMoodFrequencies().values().stream().mapToLong(Long::longValue).sum());
+    }
+
 }

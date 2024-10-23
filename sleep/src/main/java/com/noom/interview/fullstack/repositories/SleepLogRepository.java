@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,4 +17,9 @@ public interface SleepLogRepository extends JpaRepository<SleepLog, Long> {
             @Param("userId") Long userId,
             @Param("lastNightStart") LocalDateTime lastNightStart,
             @Param("lastNightEnd") LocalDateTime lastNightEnd);
+
+    @Query("SELECT sl FROM SleepLog sl WHERE sl.user.id = :userId AND sl.sleepStart >= :startDate AND sl.sleepStart < :endDate")
+    List<SleepLog> findByUserIdAndDateRange(@Param("userId") Long userId,
+                                            @Param("startDate") LocalDateTime startDate,
+                                            @Param("endDate") LocalDateTime endDate);
 }
