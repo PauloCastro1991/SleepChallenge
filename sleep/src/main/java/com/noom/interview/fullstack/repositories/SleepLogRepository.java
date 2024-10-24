@@ -22,4 +22,10 @@ public interface SleepLogRepository extends JpaRepository<SleepLog, Long> {
     List<SleepLog> findByUserIdAndDateRange(@Param("userId") Long userId,
                                             @Param("startDate") LocalDateTime startDate,
                                             @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT sl FROM SleepLog sl WHERE sl.user.id = :userId AND " +
+            "(sl.sleepStart < :sleepEnd AND sl.sleepEnd > :sleepStart)")
+    List<SleepLog> findOverlappingSleepLogs(@Param("userId") Long userId,
+                                            @Param("sleepStart") LocalDateTime sleepStart,
+                                            @Param("sleepEnd") LocalDateTime sleepEnd);
 }

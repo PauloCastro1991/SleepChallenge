@@ -6,10 +6,13 @@ import com.noom.interview.fullstack.dtos.SleepLogRequestDTO;
 import com.noom.interview.fullstack.services.SleepLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/sleep-logs")
 public class SleepLogController {
@@ -17,7 +20,7 @@ public class SleepLogController {
     private SleepLogService sleepLogService;
 
     @PostMapping
-    public ResponseEntity<SleepLogDTO> createSleepLog(@RequestBody SleepLogRequestDTO sleepLogRequestDTO) {
+    public ResponseEntity<SleepLogDTO> createSleepLog(@Valid @RequestBody SleepLogRequestDTO sleepLogRequestDTO) {
         return ResponseEntity.ok(sleepLogService.createSleepLog(sleepLogRequestDTO));
     }
 

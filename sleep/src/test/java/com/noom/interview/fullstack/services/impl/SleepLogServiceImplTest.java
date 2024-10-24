@@ -5,6 +5,7 @@ import com.noom.interview.fullstack.dtos.SleepLogDTO;
 import com.noom.interview.fullstack.dtos.SleepLogRequestDTO;
 import com.noom.interview.fullstack.enums.Mood;
 import com.noom.interview.fullstack.exceptions.NoSleepLogFoundException;
+import com.noom.interview.fullstack.exceptions.SleepHoursDuplicatedException;
 import com.noom.interview.fullstack.exceptions.UserNotFoundException;
 import com.noom.interview.fullstack.models.SleepLog;
 import com.noom.interview.fullstack.models.User;
@@ -266,4 +267,16 @@ class SleepLogServiceImplTest {
         assertEquals(0, averagesDTO.getMoodFrequencies().values().stream().mapToLong(Long::longValue).sum());
     }
 
+    @Test
+    public void testCreateSleepLog_InvalidSleepRange() {
+        when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testUser));
+        when(sleepLogRepository.findOverlappingSleepLogs(any(), any(), any())).thenReturn(Collections.singletonList(new SleepLog()));
+
+        SleepHoursDuplicatedException exception = assertThrows(SleepHoursDuplicatedException.class, () ->
+            sleepLogService.createSleepLog(testSleepLogRequestDTO)
+        );
+        assertEquals(SleepHoursDuplicatedException.class, exception.getClass());
+
+        verify(sleepLogRepository, times(0)).save(any(SleepLog.class));
+    }
 }

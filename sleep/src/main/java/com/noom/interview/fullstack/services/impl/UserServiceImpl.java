@@ -1,6 +1,8 @@
 package com.noom.interview.fullstack.services.impl;
 
 import com.noom.interview.fullstack.dtos.UserDTO;
+import com.noom.interview.fullstack.dtos.UserRequestDTO;
+import com.noom.interview.fullstack.exceptions.UserNotUniqueException;
 import com.noom.interview.fullstack.models.User;
 import com.noom.interview.fullstack.repositories.UserRepository;
 import com.noom.interview.fullstack.services.UserService;
@@ -21,12 +23,21 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     @Override
-    public UserDTO createUser(UserDTO userDTO) {
+    public UserDTO createUser(UserRequestDTO userDTO) throws UserNotUniqueException {
         logger.info("Creating new user - username={}", userDTO.getUsername());
         User user = mapDtoToEntity(userDTO);
+        validateUser(user);
         User savedUser = userRepository.save(user);
         logger.info("Successfully created user with userId={}", savedUser.getId());
         return mapEntityToDto(savedUser);
+    }
+
+    private void validateUser(User user) throws UserNotUniqueException {
+        if (userRepository.findByUsernameOrEmail(user.getUsername(), user.getEmail()).isPresent()) {
+            String msg = String.format("The username=%s and email=%s must be unique", user.getUsername(), user.getEmail());
+            logger.warn(msg);
+            throw new UserNotUniqueException(msg);
+        }
     }
 
     @Override
@@ -39,10 +50,9 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
 
-    private User mapDtoToEntity(UserDTO dto) {
+    private User mapDtoToEntity(UserRequestDTO dto) {
         logger.debug("Mapping UserDTO to User entity: {}", dto);
         User user = new User();
-        user.setId(dto.getId());
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
         logger.debug("Mapped UserDTO to entity: {}", user);

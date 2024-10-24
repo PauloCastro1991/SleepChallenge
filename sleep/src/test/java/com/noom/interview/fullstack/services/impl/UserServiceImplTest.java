@@ -1,6 +1,9 @@
 package com.noom.interview.fullstack.services.impl;
 
 import com.noom.interview.fullstack.dtos.UserDTO;
+import com.noom.interview.fullstack.dtos.UserRequestDTO;
+import com.noom.interview.fullstack.exceptions.SleepHoursDuplicatedException;
+import com.noom.interview.fullstack.exceptions.UserNotUniqueException;
 import com.noom.interview.fullstack.models.User;
 import com.noom.interview.fullstack.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,8 +15,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -26,12 +30,11 @@ public class UserServiceImplTest {
     @InjectMocks
     private UserServiceImpl userService;
 
-    private UserDTO userDTO;
+    private UserRequestDTO userDTO;
 
     @BeforeEach
     void setUp() {
-        userDTO = UserDTO.builder()
-                .id(1L)
+        userDTO = UserRequestDTO.builder()
                 .username("test_user")
                 .email("test_user@example.com")
                 .build();
@@ -46,7 +49,12 @@ public class UserServiceImplTest {
 
         when(userRepository.save(any(User.class))).thenReturn(user);
 
-        UserDTO savedUserDTO = userService.createUser(userDTO);
+        UserDTO savedUserDTO = null;
+        try {
+            savedUserDTO = userService.createUser(userDTO);
+        } catch (UserNotUniqueException e) {
+            fail();
+        }
 
         assertEquals(userDTO.getUsername(), savedUserDTO.getUsername());
         assertEquals(userDTO.getEmail(), savedUserDTO.getEmail());
@@ -73,5 +81,13 @@ public class UserServiceImplTest {
         assertEquals(user1.getUsername(), userDTOs.get(0).getUsername());
         assertEquals(user2.getUsername(), userDTOs.get(1).getUsername());
         verify(userRepository, times(1)).findAll();
+    }
+
+    @Test
+    void createUser_DuplicatedObject() {
+        when(userRepository.findByUsernameOrEmail(any(), any())).thenReturn(Optional.of(new User()));
+        UserNotUniqueException exception = assertThrows(UserNotUniqueException.class, () -> userService.createUser(userDTO));
+        assertEquals(UserNotUniqueException.class, exception.getClass());
+        verify(userRepository, times(0)).save(any());
     }
 }
