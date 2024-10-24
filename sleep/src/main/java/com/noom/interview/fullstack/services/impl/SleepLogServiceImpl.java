@@ -3,8 +3,8 @@ package com.noom.interview.fullstack.services.impl;
 import com.noom.interview.fullstack.dtos.SleepLogAveragesDTO;
 import com.noom.interview.fullstack.dtos.SleepLogDTO;
 import com.noom.interview.fullstack.dtos.SleepLogRequestDTO;
-import com.noom.interview.fullstack.enums.Mood;
 import com.noom.interview.fullstack.exceptions.NoSleepLogFoundException;
+import com.noom.interview.fullstack.exceptions.SleepHoursDuplicatedException;
 import com.noom.interview.fullstack.exceptions.UserNotFoundException;
 import com.noom.interview.fullstack.models.SleepLog;
 import com.noom.interview.fullstack.models.User;
@@ -17,12 +17,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -75,9 +73,25 @@ public class SleepLogServiceImpl implements SleepLogService {
     public SleepLogDTO createSleepLog(SleepLogRequestDTO sleepLogRequestDTO) {
         logger.info("Creating new sleep log for user with id={}", sleepLogRequestDTO.getUserId());
         SleepLog sleepLog = mapDtoToEntity(sleepLogRequestDTO);
+        validateSleepLog(sleepLog);
         SleepLog savedSleepLog = sleepLogRepository.save(sleepLog);
         logger.info("Successfully created sleep log with id={} userId={}", savedSleepLog.getId(), sleepLogRequestDTO.getUserId());
         return convertToDTO(savedSleepLog);
+    }
+
+    private void validateSleepLog(SleepLog sleepLog) {
+        boolean unique = sleepLogRepository.findOverlappingSleepLogs(
+                sleepLog.getUser().getId(),
+                sleepLog.getSleepStart(),
+                sleepLog.getSleepEnd()).isEmpty();
+        if (!unique) {
+            String msg = String.format("The sleep hours were already registered in this range - userId=%s, start=%s, end=%s",
+                    sleepLog.getUser().getId(),
+                    sleepLog.getSleepStart(),
+                    sleepLog.getSleepEnd());
+            logger.warn(msg);
+            throw new SleepHoursDuplicatedException(msg);
+        }
     }
 
     @Override
