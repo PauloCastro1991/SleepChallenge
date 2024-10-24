@@ -1,0 +1,125 @@
+{
+	"info": {
+		"_postman_id": "2f3b2938-f71e-4a61-b598-dfbb1ac0fbde",
+		"name": "Sleep Challenge",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29465637"
+	},
+	"item": [
+		{
+			"name": "Create new User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"tom.brady@example.com\",\r\n    \"username\": \"tbrady\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/users",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all Users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/users",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create new Sleep Log",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\": 3,\r\n    \"sleepStart\": \"20:00\",\r\n    \"sleepEnd\": \"05:00\",\r\n    \"mood\": \"GOOD\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/sleep-logs",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"sleep-logs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all Sleep Log for an User",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/sleep-logs/user/3",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"sleep-logs",
+						"user",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get last 30 days Sleep Logs for an User",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/sleep-logs/users/3/sleep/averages/last30days",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"sleep-logs",
+						"users",
+						"3",
+						"sleep",
+						"averages",
+						"last30days"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
