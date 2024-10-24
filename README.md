@@ -14,6 +14,7 @@ The service allows users to:
 - [APIs](#apis)
 - [Validations](#validations)
 - [Tickets](#tickets)
+- [Pull Requests](#pull-requests)
 - [Postman Collection](#postman-collection)
 - [Improvement List](#improvement-list)
 - [Need help?](#need-help)
@@ -224,6 +225,9 @@ Below is an overview of the key tickets implemented in the project:
   - Defined the initial database schema using PostgreSQL.
   - Created tables for users and sleep logs with proper relationships and constraints.
   - Used Flyway for database migrations to ensure schema versioning and consistency.
+ 
+## Pull Requests
+All changes were merged from feature branch (e.g pcastro/SLP-001) to develop branch, please feel free to check it out [here](https://github.com/PauloCastro1991/SleepChallenge/pulls?q=is%3Apr+is%3Aclosed).
 
 ## Postman Collection
 
