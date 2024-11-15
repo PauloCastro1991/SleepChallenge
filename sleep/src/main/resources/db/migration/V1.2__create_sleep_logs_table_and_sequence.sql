@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS sleep_logs (
     user_id INT NOT NULL,
     sleep_start TIMESTAMP NOT NULL,
     sleep_end TIMESTAMP NOT NULL,
-    mood VARCHAR(25),
+    mood VARCHAR(25) NOT NULL CHECK (mood IN ('BAD', 'GOOD', 'OK')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
