@@ -1,19 +1,21 @@
 # **Sleep Challenge**
 
-The **Sleep Challenge** is a service built with Kotlin/Java and Spring Boot, designed to log and analyze users' sleep patterns. 
+The **Sleep Challenge** is a service built with Kotlin/Java and Spring Boot, designed to log and analyze users' sleep patterns.
 
 The service allows users to:
- - Store sleep logs
- - Retrieve the last night's sleep data 
- - Calculate 30-day sleep averages with several insights like mood frequency, average time in bed, and bedtimes.
+- Store sleep logs
+- Retrieve the last night's sleep data
+- Calculate 30-day sleep averages with several insights like mood frequency, average time in bed, and bedtimes.
 
 ## Table of Contents
 
 - [Technologies](#technologies)
 - [Setup Instructions](#setup-instructions)
+- [Time Calculation](#time-calculation)
 - [APIs](#apis)
 - [Validations](#validations)
 - [Tickets](#tickets)
+- [Pull Requests](#pull-requests)
 - [Postman Collection](#postman-collection)
 - [Improvement List](#improvement-list)
 - [Need help?](#need-help)
@@ -32,6 +34,41 @@ Dockerfiles are set up for your convenience for running the whole project. You w
 
 To run everything, simply execute `docker-compose up`. To build and run, execute `docker-compose up --build`.
 
+## Time Calculation
+### Total Time in Bed Calculation
+
+The total time in bed is calculated based on the relationship between `sleepStart` and `sleepEnd`:
+
+1. **Crossing Midnight**:
+    - If `sleepStart` is **after** `sleepEnd`, the sleep ends the **next day**.
+    - The total time is the time from `sleepStart` to midnight, plus the time from midnight to `sleepEnd`.
+
+2. **Same Day**:
+    - If `sleepStart` is **before** `sleepEnd`, the sleep happens within the same day.
+    - The total time is the difference between `sleepEnd` and `sleepStart`.
+
+---
+
+#### Example Calculations
+
+| **Scenario**         | `sleepStart` | `sleepEnd` | **Total Time in Bed** |
+|-----------------------|--------------|------------|-----------------------|
+| Crosses midnight      | 23:30        | 06:30      | 7 hours (420 minutes) |
+| Same day              | 14:00        | 16:00      | 2 hours (120 minutes) |
+
+
+---
+
+### Average Total Time in Bed
+
+The average is calculated by adding all sleep durations and dividing by the number of logs. The result is formatted as `HH:mm`.
+
+Example:
+- Total Sleep Durations: 420 + 120 = 540 minutes.
+- Average: 540 ÷ 2 = 270 minutes (4 hours and 30 minutes).
+- Result: `04:30`.
+
+---
 
 ## APIs
 ### User Endpoints
@@ -157,16 +194,16 @@ curl --location 'localhost:8080/sleep-logs/users/3/sleep/averages/last30days'
 ````
 
 ## Validations
-The Sleep Challenge has validations to ensure data integrity and avoid conflicts during the creation of users and sleep logs. 
+The Sleep Challenge has validations to ensure data integrity and avoid conflicts during the creation of users and sleep logs.
 
 The following rules apply to user creation and sleep log management:
 
 ### User Validations
- - **Unique Username or Email:**
+- **Unique Username or Email:**
 
-   - When creating a new user, the system ensures that no two users can have the same username or email. 
-This validation prevents duplication and enforces unique user identification.
-   - Error Response: If a user with the same username or email already exists, a 400 Bad Request status is returned with a message indicating that the user already exists.
+    - When creating a new user, the system ensures that no two users can have the same username or email.
+      This validation prevents duplication and enforces unique user identification.
+    - Error Response: If a user with the same username or email already exists, a 400 Bad Request status is returned with a message indicating that the user already exists.
 
 Example:
 ````
@@ -176,11 +213,11 @@ Example:
 }
 ````
 ### Sleep Log Validations
- - **Duplicate Sleep Log:**
+- **Duplicate Sleep Log:**
 
-   - A user cannot have overlapping sleep logs. 
-The system prevents the addition of sleep logs that overlap with an existing log for the same user within the same time range. This prevents multiple entries for the same sleep period.
-   - Error Response: If a sleep log overlaps with an existing one, a 400 Bad Request status is returned with an error message.
+    - A user cannot have overlapping sleep logs.
+      The system prevents the addition of sleep logs that overlap with an existing log for the same user within the same time range. This prevents multiple entries for the same sleep period.
+    - Error Response: If a sleep log overlaps with an existing one, a 400 Bad Request status is returned with an error message.
 ````
 {
   "status": 400,
@@ -196,34 +233,41 @@ Spring's javax.validation.constraints annotations are used for data validation a
 Validation errors are captured globally, and the application responds with appropriate HTTP status codes (400 Bad Request) and detailed error messages, making it easy for API clients to understand what went wrong.
 
 ## Tickets
-The development of the Sleep Challenge follows a ticketing system for tracking tasks and features. 
+The development of the Sleep Challenge follows a ticketing system for tracking tasks and features.
 
 Below is an overview of the key tickets implemented in the project:
-  
- - **SLP-006: Add read me file**
+- **SLP-008: Include mood value check in DB script**
+    - Include mood value check in DB script.
+- **SLP-007: Adjust initial scripts**
+    - Move DDL and DML to isolate files
+  - Add IF NOT EXISTS clauses for table creation
+- **SLP-006: Add read me file**
     - Creation of the *README* file.
- - **SLP-005: Add Validations for SleepLogs and User**
-   - Implemented validations to ensure data integrity.
-     - User Validations: 
-       - A user with the same username or email cannot be added to the system.
-     - SleepLog Validations:
-       - A user cannot have overlapping sleep logs, preventing multiple logs within the same time range.
+- **SLP-005: Add Validations for SleepLogs and User**
+    - Implemented validations to ensure data integrity.
+        - User Validations:
+            - A user with the same username or email cannot be added to the system.
+        - SleepLog Validations:
+            - A user cannot have overlapping sleep logs, preventing multiple logs within the same time range.
 - **SLP-004: Get 30-Day Averages**
-  - Implemented the logic to calculate and return sleep data averages over the last 30 days.
-    - The response includes:
-      - The date range for the 30-day period.
-      - Average total time in bed, average bedtime, and average wake-up time.
-      - Mood frequencies based on the user's self-reported mood after waking up.
+    - Implemented the logic to calculate and return sleep data averages over the last 30 days.
+        - The response includes:
+            - The date range for the 30-day period.
+            - Average total time in bed, average bedtime, and average wake-up time.
+            - Mood frequencies based on the user's self-reported mood after waking up.
 - **SLP-003: Adjust POST /sleep-logs, Added Mood Enum & Implement GET Last Night's Sleep Log API**
-  - Adjusted the POST /sleep-logs endpoint to support the Mood enum, allowing users to specify their mood after waking up.
-  - Added a GET endpoint to retrieve the user's last night's sleep log, providing a convenient way to access the most recent sleep entry.
+    - Adjusted the POST /sleep-logs endpoint to support the Mood enum, allowing users to specify their mood after waking up.
+    - Added a GET endpoint to retrieve the user's last night's sleep log, providing a convenient way to access the most recent sleep entry.
 - **SLP-002: Implement Initial Services and Controllers for Basic Interactions**
-  - Set up the foundational services and controllers for the API.
-  - Included basic interactions such as creating and retrieving sleep logs and user data.
+    - Set up the foundational services and controllers for the API.
+    - Included basic interactions such as creating and retrieving sleep logs and user data.
 - **SLP-001: Set up Database Schema for Sleep Logger**
-  - Defined the initial database schema using PostgreSQL.
-  - Created tables for users and sleep logs with proper relationships and constraints.
-  - Used Flyway for database migrations to ensure schema versioning and consistency.
+    - Defined the initial database schema using PostgreSQL.
+    - Created tables for users and sleep logs with proper relationships and constraints.
+    - Used Flyway for database migrations to ensure schema versioning and consistency.
+
+## Pull Requests
+All changes were merged from feature branch (e.g pcastro/SLP-001) to develop branch, please feel free to check it out [here](https://github.com/PauloCastro1991/SleepChallenge/pulls?q=is%3Apr+is%3Aclosed).
 
 ## Postman Collection
 
